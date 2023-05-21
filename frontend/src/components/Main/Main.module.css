@@ -1,0 +1,42 @@
+.outerContainer {
+    height: calc(100% - 64px);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.container {
+    font-size: 26px;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    gap: 10px;
+}
+
+.play {
+    cursor: pointer;
+    border-radius: 15px;
+    width: 308px;
+    height: 48px;
+    font-size: 20px;
+    transition: background-color 150ms ease;
+}
+
+.playEnemy {
+    background: #60C2AA;
+    color: #FFFFFF;
+}
+
+.playEnemy:hover {
+    background-color: #3BA189;
+}
+
+.playSolo {
+    background-color: #F7F7F7;
+    color: #373745;
+}
+
+.playSolo:hover {
+    background-color: #DCDCDF;
+}

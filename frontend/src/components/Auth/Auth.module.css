@@ -1,0 +1,109 @@
+.container {
+    width: 100vw;
+    height: 100vh;
+    justify-content: center;
+    align-items: center;
+    display: flex;
+    box-sizing: border-box;
+    background-color: #F6F6F6;
+}
+
+.container > div {
+    box-sizing: border-box;
+    width: 400px;
+    display: flex;
+    flex-direction: column;
+    padding: 40px 24px;
+    gap: 20px;
+    box-shadow: 0 4px 20px rgba(44, 57, 121, 0.09);
+    border-radius: 16px;
+    background-color: #FFFFFF;
+    justify-content: center;
+    align-items: center;
+}
+
+.container > div > p {
+    font-weight: 700;
+    font-size: 24px;
+    line-height: 150%;
+    color: #373745;
+}
+
+.container > div > img {
+    width: 132px;
+}
+
+.container > div > button {
+    transition: background 150ms ease;
+    box-shadow: 0 4px 20px rgba(44, 57, 121, 0.09);
+    height: 48px;
+    color: #FFFFFF;
+    background: rgba(96, 194, 170, 0.3);
+    width: 100%;
+    border-radius: 12px;
+    padding: 12px 20px;
+    box-sizing: border-box;
+    font-weight: 500;
+    font-size: 16px;
+    line-height: 24px;
+}
+
+.inputGroup {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    padding: 0;
+    width: 100%;
+    gap: 12px;
+
+}
+
+.inputGroup > div > p {
+    display: none;
+    margin: 0;
+    position: relative;
+    font-size: 12px;
+    line-height: 16px;
+    letter-spacing: .25px;
+    color: #E93E3E;
+    height: 16px;
+}
+
+.inputGroup > div > input {
+    transition: border 150ms ease;
+    height: 48px;
+    width: 100%;
+    box-sizing: border-box;
+    padding: 12px 20px;
+    font-size: 16px;
+    line-height: 24px;
+    border: 1px solid #DCDCDF;
+    border-radius: 12px;
+}
+
+.inputGroup > input:hover {
+    border: 1px solid #9a9999;
+}
+
+.inputGroup > input:focus {
+    border: 1px solid #60C2AA !important;
+}
+
+.inputGroup ~ span {
+    transition: color 150ms ease;
+    color: #9a9999;
+    cursor: pointer;
+}
+
+.inputGroup ~ span:hover {
+    color: #3BA189;
+}
+
+.active {
+    cursor: pointer;
+    background: #60C2AA !important;
+}
+
+.inputErr {
+    border-color: #E93E3E !important;
+}

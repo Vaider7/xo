@@ -1,0 +1,47 @@
+.board {
+    box-sizing: border-box;
+    width: 400px;
+    height: 400px;
+    display: flex;
+    flex-direction: row;
+    padding: 0;
+    gap: 4px;
+    filter: drop-shadow(0px 4px 20px rgba(44, 57, 121, 0.09));
+    flex-wrap: wrap;
+}
+
+.board div {
+    width: calc(100% / 3 - 4px);
+    height: calc(100% / 3 - 4px);
+    background-color: #FFFFFF;
+    border-radius: 12px;
+    position: relative;
+}
+
+.x::before {
+    content: url("../../assets/x.svg");
+    position: absolute;
+    top: calc(100%/2 - 13px);
+    left: calc(100%/2 - 13px);
+    height: 26px;
+    width: 26px;
+    transform: scale(3.5);
+}
+
+.o::before {
+    content: url("../../assets/o.svg");
+    position: absolute;
+    top: calc(100%/2 - 13px);
+    left: calc(100%/2 - 13px);
+    height: 26px;
+    width: 26px;
+    transform: scale(3.5);
+}
+
+.oBackground {
+    background-color: #F3BBD0 !important;
+}
+
+.xBackground {
+    background-color: #CFEDE6 !important;
+}
