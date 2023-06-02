@@ -2,14 +2,14 @@ use std::{str::FromStr, fmt::Debug};
 
 use crate::{
     entities::user::{self as user_entity, Entity as User},
-    error::AppError, utils::make_app_error, SocketConnectionType,
+    error::AppError, utils::make_app_error, SocketConnectionType, AppState,
 };
 use axum::{
     extract::{State, FromRequestParts, ws::Message},
     Json, http::request::Parts, headers::{authorization::Bearer, Authorization}, TypedHeader, RequestPartsExt
 };
 use futures::SinkExt;
-use sea_orm::{prelude::*, ActiveValue::Set, sea_query::token};
+use sea_orm::{prelude::*, ActiveValue::Set};
 use serde::{Deserialize, Serialize};
 use validator::Validate;
 
@@ -82,14 +82,14 @@ pub struct TokenResponse {
 }
 
 pub async fn create_user(
-    State(db): State<DatabaseConnection>,
+    State(app_state): State<AppState>,
     Json(user): Json<CreateUser>,
 ) -> Result<Json<TokenResponse>, AppError> {
     user.validate()?;
 
     let existed_user = User::find()
         .filter(user_entity::Column::Login.contains(&user.login))
-        .one(&db)
+        .one(&app_state.db)
         .await?;
 
     if existed_user.is_some() {
@@ -113,7 +113,7 @@ pub async fn create_user(
         ..Default::default()
     };
 
-    let new_user = User::insert(new_user).exec(&db).await?;
+    let new_user = User::insert(new_user).exec(&app_state.db).await?;
 
     let claims = Claims {
         sub: new_user.last_insert_id,
@@ -138,8 +138,8 @@ pub struct LoginUser {
     password: String
 }
 
-pub async fn login(State(db): State<DatabaseConnection>, login_user: Json<LoginUser>) -> Result<Json<TokenResponse>, AppError> {
-    let found_user = User::find().filter(user_entity::Column::Login.contains(&login_user.login)).one(&db).await?;
+pub async fn login(State(app_state): State<AppState>, login_user: Json<LoginUser>) -> Result<Json<TokenResponse>, AppError> {
+    let found_user = User::find().filter(user_entity::Column::Login.contains(&login_user.login)).one(&app_state.db).await?;
     if let Some(user) = found_user {
         let argon2 = Argon2::default();
 

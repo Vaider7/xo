@@ -10,4 +10,3 @@ const MainView: Component = () => {
   )
 }
 export default MainView
-2

@@ -4,30 +4,25 @@ use axum::{
         State,
     },
     headers::{self, authorization::Bearer},
-    response::{IntoResponse, Response},
-    routing::get,
-    Router, TypedHeader,
+    response::Response, TypedHeader,
 };
-use jsonwebtoken::decode;
 
-use std::{borrow::Cow, ops::Index};
-use std::{net::SocketAddr, path::PathBuf};
-use std::{ops::ControlFlow, sync::Arc};
-use tower_http::{
-    services::ServeDir,
-    trace::{DefaultMakeSpan, TraceLayer},
-};
+use tokio::sync::Mutex;
+
+
+use std::net::SocketAddr;
+use std::sync::Arc;
+
 
 use futures::{sink::SinkExt, stream::StreamExt};
-use tracing_subscriber::{layer::SubscriberExt, util::SubscriberInitExt};
+
 
 //allows to extract the IP of connecting user
 use axum::extract::connect_info::ConnectInfo;
-use axum::extract::ws::CloseFrame;
 
 use uuid::Uuid;
 
-use crate::{SocketConnection, SocketConnectionType};
+use crate::{SocketConnection, SocketConnectionType, AppState};
 
 use super::{
     actions::{ClientAction, ServerAction},
@@ -38,19 +33,20 @@ pub async fn handler(
     ws: WebSocketUpgrade,
     ConnectInfo(addr): ConnectInfo<SocketAddr>,
     token: Option<TypedHeader<headers::Authorization<Bearer>>>,
-    State(connections): State<SocketConnectionType>,
+    State(app_state): State<AppState>,
 ) -> Response {
     tracing::debug!("New connection with addr: {:?}", addr);
     if let Some(TypedHeader(token)) = token {
         token.token();
     }
-    ws.on_upgrade(move |socket| handle_socket(socket, addr, connections))
+    ws.on_upgrade(move |socket| handle_socket(socket, addr, app_state.sockets))
 }
 pub async fn handle_socket(
-    mut socket: WebSocket,
+    socket: WebSocket,
     addr: SocketAddr,
-    connections: SocketConnectionType,
+    connections: Arc<Mutex<Vec<SocketConnection>>>,
 ) {
+    let mut txs = connections.lock().await;
     let (mut tx, mut rx) = socket.split();
 
     let uuid = Uuid::new_v4();
@@ -62,10 +58,9 @@ pub async fn handle_socket(
 
     if let Err(err) = res {
         tracing::warn!("Some shit happend: {}", err);
+        return;
     } else {
-        let mut txs = connections.lock().await;
         txs.push(SocketConnection {
-            addr,
             uuid,
             socket: tx,
             user_id: None,

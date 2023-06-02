@@ -6,6 +6,7 @@ pub mod utils;
 use std::time::Duration;
 use std::{net::SocketAddr, sync::Arc};
 
+use api::handlers::get_active_players;
 use api::users::login;
 use api::ws::{check_alive_sockets, handle_socket};
 use api::{users::create_user, ws::handler};
@@ -15,7 +16,7 @@ use axum::{
     Router,
 };
 use futures::stream::SplitSink;
-use sea_orm::Database;
+use sea_orm::{Database, DatabaseConnection};
 use tokio::sync::Mutex;
 use tower_http::{
     cors::{Any, CorsLayer},
@@ -24,20 +25,24 @@ use tower_http::{
 use tracing_subscriber::{layer::SubscriberExt, util::SubscriberInitExt};
 use uuid::Uuid;
 
+#[derive(Clone)]
+pub struct AppState {
+    db: DatabaseConnection,
+    sockets: Arc<Mutex<Vec<SocketConnection>>>,
+}
+
 #[derive(Debug)]
 pub struct SocketConnection {
-    addr: SocketAddr,
     uuid: Uuid,
     socket: SplitSink<WebSocket, Message>,
-    user_id: Option<i32>
+    user_id: Option<i32>,
 }
 
 type SocketConnectionType = Arc<Mutex<Vec<SocketConnection>>>;
 
 #[tokio::main]
 async fn main() -> Result<(), Box<dyn std::error::Error>> {
-    tracing_subscriber::registry()
-        .with(tracing_subscriber::EnvFilter::new(
+    tracing_subscriber::registry() .with(tracing_subscriber::EnvFilter::new(
             std::env::var("RUST_LOG").unwrap_or_else(|_| "debug,hyper=info".into()),
         ))
         .with(tracing_subscriber::fmt::layer())
@@ -47,11 +52,15 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
 
     let connections: SocketConnectionType = Arc::new(Mutex::new(vec![]));
 
+    let app_state = AppState {
+        db,
+        sockets: connections.clone(),
+    };
 
     let users_router = Router::new()
         .route("/login", post(login))
         .route("/create", post(create_user))
-        .with_state(db);
+        .route("/active", get(get_active_players));
 
     let app = Router::new()
         .fallback_service(
@@ -60,7 +69,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
         )
         .nest("/users", users_router)
         .route("/ws", get(handler))
-        .with_state(Arc::clone(&connections))
+        .with_state(app_state)
         .layer(
             CorsLayer::new()
                 .allow_origin(Any)
